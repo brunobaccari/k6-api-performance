@@ -1,0 +1,50 @@
+name: k6 smoke
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+concurrency:
+  group: k6-smoke
+  cancel-in-progress: false
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check ignored files and report gate
+        run: |
+          test -z "$(git ls-files --cached --ignored --exclude-standard)"
+          python -m unittest discover -s tests -p 'test_*.py'
+      - uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: '2.3.0'
+      - name: Run bounded smoke
+        id: tests
+        shell: bash
+        run: |
+          set -a
+          source .env.example
+          set +a
+          mkdir -p results
+          k6 run tests/smoke.js
+      - name: Validate result and write summary
+        if: always()
+        env:
+          TEST_OUTCOME: ${{ steps.tests.outcome }}
+        run: python ci_summary.py
+      - uses: actions/upload-artifact@v4
+        id: artifact
+        if: always()
+        with:
+          name: k6-results
+          path: results/
+          retention-days: 30
+          if-no-files-found: error
+      - name: Link artifact
+        if: always()
+        env:
+          ARTIFACT_URL: ${{ steps.artifact.outputs.artifact-url }}
+        run: printf '\n[Download k6 results](%s)\n' "$ARTIFACT_URL" >> "$GITHUB_STEP_SUMMARY"
