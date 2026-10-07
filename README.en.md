@@ -60,3 +60,5 @@ python -m unittest discover -s tests -p 'test_*.py'
 - [Custom summary](https://grafana.com/docs/k6/latest/results-output/end-of-test/custom-summary/)
 
 References checked on 2026-10-06. The former `test-api.k6.io` redirected to QuickPizza; this suite uses the current target directly.
+
+Husky: with Node 24 and the stack dependencies installed, run `npm ci` to enable pre-commit. `npm run check:local` checks the diff, report gate and existing type/lint checks. The hook also rejects ignored files in the index. Browser, emulator and API tests remain in CI.

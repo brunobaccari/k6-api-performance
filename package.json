@@ -1,0 +1,11 @@
+{
+  "name": "k6-api-performance",
+  "private": true,
+  "scripts": {
+    "prepare": "husky",
+    "check:local": "git diff --cached --check && python -m unittest discover -s tests -p test_*.py"
+  },
+  "devDependencies": {
+    "husky": "9.1.7"
+  }
+}
